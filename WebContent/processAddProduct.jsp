@@ -2,6 +2,13 @@
     pageEncoding="UTF-8"%>
 <%@ page import="dto.Product" %>
 <%@ page import="dao.ProductRepository" %>
+
+<!-- 파일 업로드용 라이브러리 추가 -->
+<%@ page import="java.io.*" %>
+<%@ page import="java.util.*" %>
+
+<%@ page import="com.oreilly.servlet.*" %>
+<%@ page import="com.oreilly.servlet.multipart.*" %>
 <!-- 
 dao : Data Access Object 의 줄임말로서 데이터를 조작하기 위한 기능을 전담하기 위해서 만들어진 오브젝트
 dto : Data Transfer Object  의 줄임말로서 계층간의 데이터를 교환하기 위한 오브젝트 / DB와 자바의
@@ -10,16 +17,23 @@ dto : Data Transfer Object  의 줄임말로서 계층간의 데이터를 교환
  -->
 <%
 	request.setCharacterEncoding("UTF-8");
+
+	String filename= "";
+	String realFolder = "D:\\Java\\Upload";
+	int maxSize = 5 * 1024 * 1024;
+	String encType = "utf-8";
 	
-/* requese 내장 객체를 사용하여 넘겨받은 데이터를 하나씩 꺼냄 */
-	String productId = request.getParameter("productId");
-	String name = request.getParameter("name");
-	String unitPrice = request.getParameter("unitPrice");
-	String description = request.getParameter("description");
-	String manufacturer = request.getParameter("manufacturer");
-	String category = request.getParameter("category");
-	String unitsInStock = request.getParameter("unitsInStock");
-	String condition = request.getParameter("condition");
+	MultipartRequest multi = new MultipartRequest(request, realFolder, maxSize, encType, new DefaultFileRenamePolicy());
+	
+/* MultipartRequest를 사용하여 넘겨받은 데이터를 하나씩 꺼냄 */
+	String productId = multi.getParameter("productId");
+	String name = multi.getParameter("name");
+	String unitPrice = multi.getParameter("unitPrice");
+	String description = multi.getParameter("description");
+	String manufacturer = multi.getParameter("manufacturer");
+	String category = multi.getParameter("category");
+	String unitsInStock = multi.getParameter("unitsInStock");
+	String condition = multi.getParameter("condition");
 	
 	/* 넘겨받은 unitPrice가 문자열로 되어 있으며, Product.java의 unitPrice는 정수타입이므로
 	   데이터 타입을 변경해야 함	
@@ -41,6 +55,11 @@ dto : Data Transfer Object  의 줄임말로서 계층간의 데이터를 교환
 	    stock = 0;
 	else
 	    stock = Long.valueOf(unitsInStock);
+	
+	/* MultipartRequest에 저장된 첨부 파일에 대한 정보를 읽어옴 */
+	Enumeration<?> files = multi.getFileNames();
+	String fname = (String)files.nextElement();
+	String fileName = multi.getFilesystemName(fname);
 	
 	/* ProductRepository 클래스 타입의 변수 dao에 싱글톤 방식으로 ProductRepository 클래스 내부에서
 		생성된 객체를 대입
